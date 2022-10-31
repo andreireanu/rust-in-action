@@ -22,6 +22,7 @@ fn main() {
 
     let x:f32 = 1.0 / 0.0;
     assert!(!x.is_finite());
+    
     assert!(abc.0 + abc.1 == abc.2);
     assert!(xyz.0 + xyz.1 == xyz.2); // -> CRASHES
 }
