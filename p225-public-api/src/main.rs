@@ -1,3 +1,14 @@
+use libactionkv::ActionKV;
+
+const USAGE: &str = "
+Usage:
+    akv_mem.exe FILE get KEY
+    akv_mem.exe FILE delete KEY
+    akv_mem.exe FILE insert KEY VALUE
+    akv_mem.exe FILE update KEY VALUE
+";
+
+
 match action {
     "get" => match store.get(key).unwrap() {
         None => eprintln!("{:?} not found", key),
