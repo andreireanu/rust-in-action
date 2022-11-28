@@ -28,3 +28,15 @@ match action {
     }
     _ => eprintln!("{}", &USAGE),
     }
+
+    fn main() {
+        let args: Vec<String> = std::env::args().collect();
+        let fname = args.get(1).expect(&USAGE);
+    
+        let action = args.get(2).expect(&USAGE).as_ref();
+        let key = args.get(3).expect(&USAGE).as_ref();
+        let maybe_value = args.get(4);
+        let path = std::path::Path::new(&fname);
+        let mut store = ActionKV::open(path).expect("unable to open file");
+        store.load().expect("unable to load data");
+    }
