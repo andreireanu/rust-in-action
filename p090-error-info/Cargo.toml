@@ -1,5 +1,5 @@
 [package]
-name = "p078-type-alias"
+name = "p090-error-info"
 version = "0.1.0"
 edition = "2021"
 

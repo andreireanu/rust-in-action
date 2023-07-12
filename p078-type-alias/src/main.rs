@@ -1,4 +1,10 @@
-#![allow(unused_variables)]
+use rand::prelude::*;
+
+fn one_in(denominator: u32) -> bool {
+    thread_rng().gen_ratio(1, denominator)
+}
+
+
 
 #[derive(Debug)]
 struct File {
@@ -7,27 +13,47 @@ struct File {
 }
 
 impl File {
-    fn new(name:&str, data:Vec<u8>) -> Self {
-        Self { name: String::from(name), data }
+
+    fn new(name: &str) -> File {
+        File { 
+            name: String::from(name),
+            data: Vec::new(),
+        }
     }
+
+    fn new_with_data(name:&str, data:&Vec<u8>) -> Self {
+        Self { name: String::from(name), data: data.clone() }
+    }
+
+    fn read(&self, save_to: &mut Vec<u8>,) -> Result<usize, String> {
+        let mut tmp = self.data.clone();
+        let read_length = tmp.len();
+    
+        save_to.reserve(read_length);
+        save_to.append(&mut tmp);
+        Ok(read_length)
+    }
+
+
 }
 
-fn open(f: &mut File) -> bool {
-    true 
+fn open(f: File) -> Result<File, String> {
+    if one_in(2) {
+        let err_msg = String::from("Permission denied");
+        return Err(err_msg);
+    }
+    Ok(f)
 }
 
-fn close(f: &mut File) -> bool {
-    true
+fn close(f: File) -> Result<File, String>  {
+    if one_in(2) {
+        let err_msg = String::from("Interrupted by signal!");
+        return Err(err_msg);
+    }
+    Ok(f)
 }
 
-fn read(f: &File, save_to: &mut Vec<u8>,) -> usize {
-    let mut tmp = f.data.clone();
-    let read_length = tmp.len();
 
-    save_to.reserve(read_length);
-    save_to.append(&mut tmp);
-    read_length
-}
 
 fn main() {
     let f1 = File {
@@ -47,9 +73,9 @@ fn main() {
 
     let mut buffer: Vec<u8> = vec![];
 
-    open(&mut f2);
-    let f2_length = read(&f2, &mut buffer);
-    close(&mut f2);
+    f2 = open(f2).unwrap();
+    let f2_length = &f2.read(&mut buffer).unwrap();
+    f2 = close(f2).unwrap();
 
     let text2 = String::from_utf8_lossy(&buffer);
 
@@ -57,12 +83,14 @@ fn main() {
     println!("{} is {} bytes long", &f2.name, f2_length);
     println!("{}", text2);
 
-    let mut f3 = File::new( "f3.txt", Vec::new());
+    let mut f3 = File::new_with_data( "f3.txt", &Vec::new());
     f3.data.push(78);
     f3.data.push(103);
     f3.data.push(90);
     buffer.clear();
-    let f3_length = read(&f3, &mut buffer);
+    f3 = open(f3).unwrap();
+    let f3_length = &f3.read(&mut buffer).unwrap();
+    f3 = close(f3).unwrap();
     let text3 = String::from_utf8_lossy(&buffer);
     println!("{:?}", f3);
     println!("{} is {} bytes long", &f3.name, f3_length);
