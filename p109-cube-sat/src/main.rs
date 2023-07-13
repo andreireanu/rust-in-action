@@ -5,46 +5,70 @@ enum StatusMessage {
     Ok,
 }
 
-type Message = String;
+#[derive(Debug)]
+struct CubeSat {
+    id: u64,
+}
+
+struct GroundStation;
+
+#[derive(Debug, PartialEq)]
+struct Message {
+    to: u64,
+    content: String,
+}
 
 #[derive(Debug)]
 struct Mailbox {
     messages: Vec<Message>,
 }
 
-#[derive(Debug)] 
-struct CubeSat {
-    id: u64,
-    mailbox: Mailbox,
-}
+impl Mailbox {
+    fn post(&mut self, msg: Message) {
+        self.messages.push(msg);
+    }
 
-fn check_status(sat_id: CubeSat) -> CubeSat {
-    println!("{:?} status message is {:?} ", sat_id, StatusMessage::Ok);
-    sat_id
+    fn deliver(&mut self, recipient: &CubeSat) -> Option<Message> {
+        for (idx, message) in self.messages.iter().enumerate() {
+            if message.to == recipient.id {
+                return Some(self.messages.remove(idx));
+            }
+        }
+        None
+    }
 }
-
-struct GroundStation;
 
 impl GroundStation {
-    fn send(&self, to: &mut CubeSat, msg: Message ) {
-        to.mailbox.messages.push(msg);
+    fn connect(&self, sat_id: u64) -> CubeSat {
+        CubeSat { id: sat_id }
+    }
+
+    fn send(&self, mailbox: &mut Mailbox, msg: Message) {
+        mailbox.post(msg);
     }
 }
 
 impl CubeSat {
-    fn rcv(&mut self) -> Option<Message> {
-        self.mailbox.messages.pop()
+    fn recv(&self, mailbox: &mut Mailbox) -> Option<Message> {
+        mailbox.deliver(&self)
     }
+}
+
+fn fetch_sat_ids() -> Vec<u64> {
+    vec![1, 2, 3]
 }
 
 fn main() {
 
-    let base = GroundStation {};
-    let mut sat_a = CubeSat { id: 0, mailbox: Mailbox { messages: vec![ ] } };
-    println!("to: {:?}", sat_a);
-    base.send(&mut sat_a, Message::from("Hello there!"));
-    if let Some(message) = sat_a.rcv() {
-        println!("{:?}", message);
+    let mut mailbox = Mailbox { messages: vec![]};
+    let groundStation = GroundStation {};
+    for id in fetch_sat_ids() {
+        let current_cube = groundStation.connect(id );
+        let message  = Message { to: id, content: String::from("Hello there!") };
+        groundStation.send(&mut mailbox, message);
+        let message = current_cube.recv(&mut mailbox);
+        println!("Message to CubeSat {:?}: {:?} ", current_cube, message.unwrap());
     }
+
 
 }
